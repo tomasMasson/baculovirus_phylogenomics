@@ -35,7 +35,7 @@ def main():
             """)
     parser.add_argument('hmmfile')
     args = parser.parse_args()
-    extract_hmmer_hits(args.hhmfile)
+    extract_hmmer_hits(args.hmmfile)
 
 
 if __name__ == '__main__':
