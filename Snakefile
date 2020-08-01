@@ -27,31 +27,33 @@ rule run_orthofinder:
         mv Orthofinder results
         """
 
-rule build_hmm_database:
+rule create_hmm_database:
     input:
         rules.run_orthofinder.output[0]
     output:
-        "results/hmmdb"
+        "results/hmm_db"
     params:
-        os.path.join(rules.run_orthofinder.output[0], OG_DIR)
+        files_path=os.path.join(rules.run_orthofinder.output[0], OG_DIR),
+        min_number=3,
+        name='hmm_db'
     shell:
         "scripts/generate_hmm_database.py {params} > {output}"
 
-#rule aggregate_protein_sequences:
-#    input:
-#    output:
-#        "results/proteins_db.faa"
-#    params:
-#        DATA_DIR
-#    shell:
-#        """
-#        cat {params}/* > {output}
-#        """
+rule aggregate_protein_sequences:
+    input:
+    output:
+        "results/proteins_db.faa"
+    params:
+        DATA_DIR
+    shell:
+        """
+        cat {params}/* > {output}
+        """
 
 rule hmmer_search:
     input:
-        seqdb="data/putative_proteins_baculovirus.faa",
-        hmmfile="results/hmmdb"
+        seqdb="results/proteins_db.faa",
+        hmmfile="results/hmm_db"
     output:
         "results/hmm_search.out"
     shell:
