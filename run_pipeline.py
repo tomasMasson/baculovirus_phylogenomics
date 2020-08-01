@@ -6,23 +6,36 @@ import os
 import shutil
 import snakemake
 
+# Pipeline general configurations
 date = datetime.now().strftime('%h') + datetime.now().strftime('%d')
 snakefile = 'Snakefile'
-og_dir = os.path.join(f'Results_{date}', 'Orthogroup_Sequences')
+orthofinder_dir = os.path.join(f'OrthoFinder/Results_{date}', 'Orthogroup_Sequences')
+results_dir = 'results/'
 
 
 def main():
     parser = argparse.ArgumentParser(
             description='Protein orthology inference pipeline based on Orthofinder and Broccoli',
-            usage='command.py <proteomes>')
-    parser.add_argument('proteomes',
-                        help='Directory containing proteomes fasta files. Extension of the file must be .fasta (Broccoli requirement)')
+            usage='command.py <proteomes> <min_number>',
+            epilog=
+            '''
+            A csv file is created at results folder.
+            Each row displays the best orthogoup hit for each baculovirus protein.
+            Columns field:
+
+            query,hit,e-value,domain_e-value,coverage
+            ''')
+    parser.add_argument('proteomes', help='Directory containing proteome files')
+    parser.add_argument('min_number', help='Minimal number of sequences required to process a multifasta orthogroup')
     args = parser.parse_args()
     data_dir = args.proteomes
+    min_number = args.min_number
 
     config = {
             'data_dir': data_dir,
-            'og_dir': og_dir
+            'orthof_dir': orthofinder_dir,
+            'results_dir': results_dir,
+            'min_number': min_number
             }
     if os.path.isdir('results'):
         shutil.rmtree('results')
