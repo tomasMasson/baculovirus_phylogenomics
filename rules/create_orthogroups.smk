@@ -1,20 +1,22 @@
-#DATA_DIR = config['data_dir']
-#ORTHOF_DIR = config['orthof_dir']
-#MIN_NUMBER = config['min_number']
-#
-#rule all:
-#    input:
-#        "results/hmm_db",
-#        "results/hmm_report.csv"
-#
+DATA_DIR = config['data_dir']
+ORTHOF_DIR = config['orthof_dir']
+MIN_NUMBER = config['min_number']
+
+rule all:
+    input:
+        "results/hmm_db",
+        "results/hmm_report.csv"
+
 rule run_orthofinder:
     input:
         DATA_DIR
     output:
         "results/Orthogroup_Sequences/OG0000000.fa"
+    threads:
+        3
     shell:
         """
-        orthofinder -f {input} -og -o ./OrthoFinder &&\
+        orthofinder -S blast -I 1.4 -t 3 -f {input} -og -o ./OrthoFinder &&\
         cp -r OrthoFinder {ORTHOF_DIR} results &&\
         rm -rf OrthoFinder/
         """
