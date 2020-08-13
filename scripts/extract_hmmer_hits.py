@@ -13,14 +13,14 @@ def extract_hmmer_hits(filename):
     search = SearchIO.parse(filename, 'hmmer3-text')
     for query in search:
         identifier = query.id
-        if len(query.hits) > 0:
+        try:
             best_hit = query[0].id
             evalue = query[0].evalue
             hsp = query[0][0]
             evalue_dom = hsp.evalue
             coverage = (hsp.query_end - hsp.query_start) / query.seq_len
             print(f'{identifier},{best_hit},{evalue},{evalue_dom},{coverage}')
-        else:
+        except IndexError:
             print(f'{identifier},NA,NA,NA,NA')
 
 
