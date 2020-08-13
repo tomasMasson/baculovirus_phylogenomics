@@ -2,10 +2,10 @@ DATA_DIR = config['data_dir']
 ORTHOF_DIR = config['orthof_dir']
 MIN_NUMBER = config['min_number']
 
-rule all:
-    input:
-        "results/hmm_db",
-        "results/hmm_report.csv"
+#rule all:
+#    input:
+#        "results/hmm_db",
+#        "results/hmm_report.csv"
 
 rule run_orthofinder:
     input:
