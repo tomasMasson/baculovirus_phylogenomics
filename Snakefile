@@ -4,6 +4,6 @@ MIN_NUMBER = config['min_number']
 
 rule all:
     input:
-        "results/hmm_report.csv"
+        "results/gene_clusters.csv"
 
 include: 'rules/create_orthogroups.smk'
