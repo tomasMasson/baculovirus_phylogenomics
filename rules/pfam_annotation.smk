@@ -6,7 +6,8 @@ SPECIES = [file.split('/')[-1].split('.')[0] for file in glob.glob('data/genomes
 
 rule all:
   input:
-    expand("data/proteomes/{species}.orfs.fasta", species=SPECIES)
+    "pfam_annotation.tbl"
+#    expand("data/proteomes/{species}.orfs.fasta", species=SPECIES)
 
 rule orf_prediction:
   input:
@@ -20,22 +21,23 @@ rule orf_prediction:
 
 rule aggregate_orfs:
   input:
-    "data/proteomes/{specie}.fasta",
-    "data/proteomes/{specie}.orffinder.fasta"
+    expand("data/proteomes/{species}.orffinder.fasta", species=SPECIES)
   output:
-    temp("data/proteomes/{specie}.orfs.aggregated")
+    temp("baculovirus_orfs.faa")
   shell:
     """
     cat {input} > {output}
     """
 
-rule deduplicate_orfs:
+rule pfam_annotation:
   input:
-    "data/proteomes/{specie}.orfs.aggregated"
+    seq="baculovirus_orfs.faa",
+    db="data/Pfam-A.hmm",
   output:
-    "data/proteomes/{specie}.orfs.fasta"
+    "pfam_annotation.tbl"
+  threads:
+      3
   shell:
     """
-    cd-hit -i {input} -o {output} -c 1 &&\
-    rm {output}.clstr
+    hmmscan --tblout {output} -E 0.001 --domE 0.001 --cpu {threads} {input.db} {input.seq}
     """
