@@ -11,7 +11,7 @@ rule run_orthofinder:
         3
     shell:
         """
-        orthofinder -S blast -I 1.4 -t 3 -f {input} -og -o ./OrthoFinder &&\
+        orthofinder -I 1.4 -t 3 -f {input} -og -o ./OrthoFinder &&\
         cp -r OrthoFinder {ORTHOF_DIR} results &&\
         rm -rf OrthoFinder/
         """
@@ -44,18 +44,18 @@ rule hmmer_search:
         seqdb="results/proteins_db.faa",
         hmmfile="results/hmm_db"
     output:
-        "results/hmm_search.out"
+        "results/hmm_search.tab"
     shell:
         """
-        hmmscan -o {output} -E 0.01 --domE 0.01 {input.hmmfile} {input.seqdb}
+        hmmscan --tblout {output} -E 0.001 --domE 0.001 {input.hmmfile} {input.seqdb}
         """
 
 rule hmmer_report:
     input:
-        "results/hmm_search.out"
+        "results/hmm_search.tab"
     output:
-        "results/hmm_report.csv"
+        "results/gene_clusters.csv"
     shell:
         """
-        python3 scripts/extract_hmmer_hits.py {input} > {output}
+        python3 scripts/parse_hmmer-tab.py {input} > {output}
         """

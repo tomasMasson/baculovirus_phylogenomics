@@ -19,11 +19,9 @@ def main():
             usage='command.py <proteomes> <min_number>',
             epilog=
             '''
-            A csv file is created at results folder.
-            Each row displays the best orthogoup hit for each baculovirus protein.
-            Columns field:
-
-            query,hit,e-value,domain_e-value,coverage
+            A csv file with gene cluster is created at results folder.
+            Each row displays the best cluster identifier and the individual
+            protein identifiers.
             ''')
     parser.add_argument('proteomes', help='Directory containing proteome files')
     parser.add_argument('min_number', help='Minimal number of sequences required to process a multifasta orthogroup')
@@ -34,7 +32,7 @@ def main():
     config = {
             'data_dir': data_dir,
             'orthof_dir': orthofinder_dir,
-            'results_dir': results_dir,
+#            'results_dir': results_dir,
             'min_number': min_number
             }
     if os.path.isdir('results'):
@@ -42,12 +40,13 @@ def main():
         print('Results directory cleaned')
     else:
         os.mkdir('results')
-    analysis = snakemake.snakemake(snakefile, printshellcmds=True,
+    analysis = snakemake.snakemake(snakefile,
+                                   printshellcmds=True,
                                    config=config
                                    )
     if analysis:
-        return 0
-    return 1
+        return "Analysis Completed"
+    return "Something went wrong"
 
 
 if __name__ == '__main__':

@@ -39,10 +39,6 @@ def create_hmm_database(files_dir, min_number, db_name):
         seqfile = os.path.join(work_dir, file)
         if seqfile.endswith('.fa') and sequences_number(seqfile, min_number):
             build_hmm_model(seqfile)
-#            command1 = f'mafft --localpair --maxiterate 1000 {seqfile} >> {seqfile[:-3]}.aln'
-#            command2 = f'hmmbuild {seqfile[:-3]}.hmm {seqfile[:-3]}.aln'
-#            subprocess.run(command1, shell=True)
-#            subprocess.run(command2, shell=True)
     # Merge all models into a single HMM database and compress it
     concatenate = f'cat {work_dir}/*.hmm > {db_name}'
     compress = f'hmmpress {db_name}'
