@@ -31,7 +31,7 @@ rule create_hmm_database:
 rule aggregate_protein_sequences:
     input:
     output:
-        "results/proteins_db.faa"
+        temp("results/proteins_db.faa")
     params:
         DATA_DIR
     shell:
@@ -47,7 +47,7 @@ rule hmmer_search:
         "results/hmm_search.tab"
     shell:
         """
-        hmmscan --tblout {output} -E 0.001 --domE 0.001 {input.hmmfile} {input.seqdb}
+        hmmscan --domtblout {output} -E 0.001 --domE 0.001 {input.hmmfile} {input.seqdb}
         """
 
 rule hmmer_report:
