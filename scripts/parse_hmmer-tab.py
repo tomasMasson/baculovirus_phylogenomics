@@ -17,8 +17,6 @@ def extract_gene_clusters(hmmer_search, reference_names):
     orthogroups = {}
     # Iterate over all query proteins
     for query in search:
-        # Store query specie and protein name
-        query_protein = '_'.join(query.id.split('_')[3:5])
         # Retrieve the best hit (Orthogroup) in the database for the query
         try:
             hit_id = query[0].id
@@ -36,7 +34,7 @@ def extract_gene_clusters(hmmer_search, reference_names):
     with open(reference_names, "r") as f:
         next(f)
         gene_names = {line.split(",")[0]: line.rstrip().split(",")[1]
-                 for line in f}
+                      for line in f}
 
     # Rename orthogroups using the reference gene names
     for key in orthogroups:
@@ -63,9 +61,9 @@ def extract_gene_clusters(hmmer_search, reference_names):
 def main():
     parser = argparse.ArgumentParser(
     description='Returns to standard output the proteins contained in each orthogroup.',
-    usage='add_missing_orthologs <hmmer>')
+    usage='parse_hmmer-tab <hmmer> <names_file>')
     parser.add_argument('hmmer', type=str, help='HMMER search in tab format')
-    parser.add_argument('names', type=str, help='')
+    parser.add_argument('names', type=str, help='File containig sequence names')
     args = parser.parse_args()
     extract_gene_clusters(args.hmmer, args.names)
 
