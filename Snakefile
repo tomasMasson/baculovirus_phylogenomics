@@ -1,9 +1,7 @@
-DATA_DIR = config['data_dir']
-ORTHOF_DIR = config['orthof_dir']
-MIN_NUMBER = config['min_number']
-
 rule all:
     input:
-        "results/gene_clusters.csv"
+      "results/baculovirus_CDS.faa",
+      "results/gene_clusters.csv"
 
-include: 'rules/create_orthogroups.smk'
+include: "rules/CDS-space_prediction.smk"
+include: "rules/orthologs_clustering.smk"
