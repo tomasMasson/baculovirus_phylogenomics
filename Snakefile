@@ -1,6 +1,6 @@
 rule all:
     input:
-      "results/baculovirus_CDS.faa",
+      "results/CDS-space_annotation.tbl",
       "results/gene_clusters.csv"
 
 include: "rules/CDS-space_prediction.smk"

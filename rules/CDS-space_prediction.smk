@@ -65,7 +65,7 @@ rule pfam_annotation:
     seq="results/baculovirus_CDS.faa",
     db="data/Pfam/Pfam-A.hmm",
   output:
-    "results/CDS_annotation.tbl"
+    "results/CDS-space_annotation.tbl"
   threads:
       4
   shell:
