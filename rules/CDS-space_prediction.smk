@@ -70,5 +70,29 @@ rule pfam_annotation:
       4
   shell:
     """
-    hmmscan --tblout {output} -E 0.001 --domE 0.001 --cpu {threads} {input.db} {input.seq}
+    hmmscan --domtblout {output} -E 0.001 --domE 0.001 --cpu {threads} {input.db} {input.seq}
+    """
+
+rule disembl_annotation:
+  input:
+    "results/baculovirus_CDS.faa"
+  output:
+    "results/CDS-space_disembl.txt"
+  threads:
+      4
+  shell:
+    """
+    DisEMBL {input} > {output}
+    """
+
+rule iupred2a_annotation:
+  input:
+    "results/baculovirus_CDS.faa"
+  output:
+    "results/CDS-space_iupred2a.txt"
+  threads:
+      4
+  shell:
+    """
+    bin/iupred2a.py -a {input} long > {output}
     """
