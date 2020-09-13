@@ -64,5 +64,5 @@ rule hmmer_report:
         "results/gene_clusters.csv"
     shell:
         """
-        python3 scripts/parse_hmmer-tab.py {input} > {output}
+        python3 scripts/gene_clustering.py {input} > {output}
         """
