@@ -4,12 +4,45 @@ import argparse
 import pandas as pd
 
 
+def longest_CD(values):
+    """
+    Return the sequence range for the longest continuous
+    disorder (CDl) subsequence.
+    """
+    # Filter residues with score equal or greater than 0.5
+    # and store its position index
+    dis_res = [index for index, res in enumerate(values)
+               if float(res) >= 0.5]
+    # Initialize longest CD region
+    CDl = []
+    # Counter to store partial results of each continuous region
+    c = []
+    # Iterate over disordered residues list
+    for i, j in zip(dis_res, dis_res[1:]):
+        # Check if residues are consecutive
+        if j - i == 1:
+            # Update counter
+            c.append(i)
+        # Not consecutive
+        else:
+            # Add last residue of the interval
+            c.append(i)
+            # Update CDl
+            if len(c) > len(CDl):
+                CDl = c
+            # Reset counter for the next interval
+            c = []
+    return CDl
+
+
 class DisorderFeatures:
-    def __init__(self, values):
+    def __init__(self, iupred, anchor):
         """
-        Initializes with a list of predicted disorder values
+        Initializes with a list of IUPred2A and ANCHOR
+        predicted values.
         """
-        self.values = values
+        self.iupred = iupred
+        self.anchor = anchor
 
     def disorder_content(self):
         """
@@ -18,82 +51,50 @@ class DisorderFeatures:
         disorder content
         """
         # Filter residues with score equal or greater than 0.5
-        dis_res = [res for res in self.values if float(res) >= 0.5]
+        dis_res = [res for res in self.iupred if float(res) >= 0.5]
         # Compute disordered fraction
-        dis_content = len(dis_res) / len(self.values)
+        dis_content = len(dis_res) / len(self.iupred) * 100
         return dis_content
 
-    def continuous_disorder(self):
+    def CDl_fraction(self):
         """
-        Store continuous disordered (CD) regions
+        Computes the protein percentage occupied by CDl.
         """
-        # Filter residues with score equal or greater than 0.5
-        # and store its position index
-        dis_res = [index for index, res in enumerate(self.values)
-                   if float(res) >= 0.5]
-        # Count of residues in regions of 2 or more amino acid-long
-        cont_dis = 0
-        # Counter to store partial results of each continuous region
-        c = 0
-        # Iterate over disordered residues list
-        for i, j in zip(dis_res, dis_res[1:]):
-            # Check if residues are consecutive
-            if j - i == 1:
-                # Update counter
-                c += 1
-            # Not consecutive
-            else:
-                # Compute regions with 2 or more residues
-                if c > 1:
-                    # Add last residue of the interval
-                    c += 1
-                    # Update disorder count
-                    cont_dis += c
-                # Reset counter for the next interval
-                c = 1
-        # Evaluate the last position, as zip only works until
-        # the penultimate position
-        # if dis_res[-1] - dis_res[-2] == 1:
-        #    cont_dis += 1
-        CD_fraction = cont_dis / len(self.values)
-        return CD_fraction
-
-    def longest_continuous_disorder(self):
-        """
-        Return longest continuous disorder (CDl) lenght
-        and the CDl percentage of protein lenght.
-        """
-        # Filter residues with score equal or greater than 0.5
-        # and store its position index
-        dis_res = [index for index, res in enumerate(self.values)
-                   if float(res) >= 0.5]
-        # Initialize longest CD region
-        CDl = 0
-        # Counter to store partial results of each continuous region
-        c = 0
-        # Iterate over disordered residues list
-        for i, j in zip(dis_res, dis_res[1:]):
-            # Check if residues are consecutive
-            if j - i == 1:
-                # Update counter
-                c += 1
-            # Not consecutive
-            else:
-                # Add last residue of the interval
-                c += 1
-                # Update CDl
-                if c > CDl:
-                    CDl = c
-                # Reset counter for the next interval
-                c = 1
-        CDl_fraction = CDl / len(self.values)
+        CDl = longest_CD(self.iupred)
+        CDl_fraction = len(CDl) / len(self.iupred) * 100
         return CDl_fraction
+
+    def CDl_lenght(self):
+        """
+        Returns CDl amino acid lenght.
+        """
+        return len(longest_CD(self.iupred))
+
+    def CDl_position(self):
+        """
+        Return CDl centroid position in protein sequence.
+        """
+        CDl = longest_CD(self.iupred)
+        if CDl:
+            return sum(CDl) / len(CDl)
+        else:
+            return 0
+
+    def anchor_position(self):
+        """
+        Return ANCHOR centroid position in protein sequence.
+        """
+        anchor = longest_CD(self.anchor)
+        if anchor:
+            return sum(anchor) / len(anchor)
+        else:
+            return 0
 
 
 def parse_iupred2a(output):
     """
     Parse IUPRED2A output into a dictionary with
-    IUPRED2A and ANCHOR keys.
+    IUPRED2A and ANCHOR predictions.
     """
 
     predictions = {}
@@ -110,86 +111,90 @@ def parse_iupred2a(output):
                 predictions[identifier]["anchor"].append(line.split()[3])
     return predictions
 
-#    print(results["lcl|NC_038371.1_prot_ORF_96972:96613_predicted"]["iupred2a"])
-#    print(len(results["lcl|NC_038371.1_prot_ORF_96972:96613_predicted"]["iupred2a"]))
-#    tmp = DisorderFeatures(results["lcl|NC_038371.1_prot_ORF_96972:96613_predicted"]["iupred2a"])
-#    print(tmp.disorder_content())
-#    print(tmp.continuous_disorder())
-#    print(tmp.longest_continuous_disorder())
+
+# def parse_disembl(output):
+#    """
+#    Parse DisEMBL output into a dictionary with
+#    HOTLOOPS and REMARK465 keys.
+#    """
+#
+#    predictions = {}
+#    with open(output, "r") as fh:
+#        for line in fh:
+#            if line.startswith(">"):
+#                identifier = line.strip()[1:]
+#                predictions[identifier] = {
+#                                    "hotloops": [],
+#                                    "remark465": []
+#                        }
+#            if line[0] not in [">", "#"]:
+#                predictions[identifier]["hotloops"].append(line.split()[3])
+#                predictions[identifier]["remark465"].append(line.split()[2])
+#    return predictions
 
 
-def parse_disembl(output):
+def compute_features(predictions):
     """
-    Parse DisEMBL output into a dictionary with
-    HOTLOOPS and REMARK465 keys.
+    Generates a CSV file with disorder features for each
+    protein present in the input file.
     """
+#    if predictor == "iupred2a":
+    features = {
+            "Protein": [],
+            "Disorder_content": [],
+            "LCPL": [],
+            "CDl": [],
+            "CDl_position": [],
+            "ANCHOR_position": [],
+            }
+    for key in predictions:
+        protein_id = key
 
-    predictions = {}
-    with open(output, "r") as fh:
-        for line in fh:
-            if line.startswith(">"):
-                identifier = line.strip()[1:]
-                predictions[identifier] = {
-                                    "hotloops": [],
-                                    "remark465": []
-                        }
-            if line[0] not in [">", "#"]:
-                predictions[identifier]["hotloops"].append(line.split()[3])
-                predictions[identifier]["remark465"].append(line.split()[4])
-    return predictions
+        # Create DisorderFeatures instance
+        iupred = predictions[key]["iupred2a"]
+        anchor = predictions[key]["anchor"]
+        handle = DisorderFeatures(iupred, anchor)
 
+        # Compute features
+        dis_content = handle.disorder_content()
+        LCPL = handle.CDl_fraction()
+        CDl = handle.CDl_lenght()
+        CDl_position = handle.CDl_position()
+        ANCHOR_position = handle.anchor_position()
 
-def compute_features(predictions, predictor):
-    """
-    """
-    if predictor == "iupred2a":
-        features = {
-                "Protein": [],
-                "Disorder_IUPRED2A": [],
-                "CD_IUPRED2A": [],
-                "CDl_IUPRED2A": [],
-                "Disorder_ANCHOR": [],
-                "CD_ANCHOR": [],
-                "CDl_ANCHOR": [],
-                }
-        for key in predictions:
-            features["Protein"].append(key)
-
-            handle = DisorderFeatures(predictions[key]["iupred2a"])
-            features["Disorder_IUPRED2A"].append(handle.disorder_content())
-            features["CD_IUPRED2A"].append(handle.continuous_disorder())
-            features["CDl_IUPRED2A"].append(handle.longest_continuous_disorder())
-
-            handle = DisorderFeatures(predictions[key]["anchor"])
-            features["Disorder_ANCHOR"].append(handle.disorder_content())
-            features["CD_ANCHOR"].append(handle.continuous_disorder())
-            features["CDl_ANCHOR"].append(handle.longest_continuous_disorder())
-
-    if predictor == "disembl:":
-        features = {
-                "Protein": [],
-                "Disorder_HOTLOOPS": [],
-                "CD_HOTLOOPS": [],
-                "CDl_HOTLOOPS": [],
-                "Disorder_REMARK465": [],
-                "CD_REMARK465": [],
-                "CDl_REMARK465": [],
-                }
-        for key in predictions:
-            features["Protein"].append(key)
-
-            handle = DisorderFeatures(predictions[key]["hotloops"])
-            features["Disorder_HOTLOOPS"].append(handle.disorder_content())
-            features["CD_HOTLOOPS"].append(handle.continuous_disorder())
-            features["CDl_HOTLOOPS"].append(handle.longest_continuous_disorder())
-
-            handle = DisorderFeatures(predictions[key]["remark465"])
-            features["Disorder_REMARK465"].append(handle.disorder_content())
-            features["CD_REMARK465"].append(handle.continuous_disorder())
-            features["CDl_REMARK465"].append(handle.longest_continuous_disorder())
+        # Store features
+        features["Protein"].append(protein_id)
+        features["Disorder_content"].append(dis_content)
+        features["LCPL"].append(LCPL)
+        features["CDl"].append(CDl)
+        features["CDl_position"].append(CDl_position)
+        features["ANCHOR_position"].append(ANCHOR_position)
     df = pd.DataFrame(features)
     df.set_index("Protein")
     df.to_csv("tmp", index=False)
+
+#    if predictor == "disembl":
+#        features = {
+#                "Protein": [],
+#                "Disorder_HOTLOOPS": [],
+#                "CD_HOTLOOPS": [],
+#                "CDl_HOTLOOPS": [],
+#                "Disorder_REMARK465": [],
+#                "CD_REMARK465": [],
+#                "CDl_REMARK465": [],
+#                }
+#        for key in predictions:
+#            features["Protein"].append(key)
+#
+#            handle = DisorderFeatures(predictions[key]["hotloops"])
+#            features["Disorder_HOTLOOPS"].append(handle.disorder_content())
+#            features["CD_HOTLOOPS"].append(handle.continuous_disorder())
+#            features["CDl_HOTLOOPS"].append(handle.longest_continuous_disorder())
+#
+#            handle = DisorderFeatures(predictions[key]["remark465"])
+#            features["Disorder_REMARK465"].append(handle.disorder_content())
+#            features["CD_REMARK465"].append(handle.continuous_disorder())
+#            features["CDl_REMARK465"].append(handle.longest_continuous_disorder())
 
 
 def main():
@@ -197,23 +202,24 @@ def main():
     Command line argument parser
     """
     parser = argparse.ArgumentParser(
-            usage="python3 disorder_features.py <output> <program>",
+            usage="python3 disorder_features.py <output>",
             description="""
-            Compute disorder features from IUPRED2A or DisEMBL predictions
+            Compute disorder features from IUPRED2A predictions
             """,
             epilog=""
     )
     parser.add_argument("output", help="Output file")
-    parser.add_argument("program",
-                        type=str,
-                        choices=["iupred2a", "disembl"],
-                        help="Program used for disorder prediction")
+#    parser.add_argument("program",
+#                        type=str,
+#                        choices=["iupred2a", "disembl"],
+#                        help="Program used for disorder prediction")
     args = parser.parse_args()
-    if args.program == "iupred2a":
-        predictions = parse_iupred2a(args.output)
-    elif args.program == "disembl":
-        predictions = parse_disembl(args.output)
-    compute_features(predictions, args.program)
+#    if args.program == "iupred2a":
+#        predictions = parse_iupred2a(args.output)
+#    elif args.program == "disembl":
+#        predictions = parse_disembl(args.output)
+    predictions = parse_iupred2a(args.output)
+    compute_features(predictions)
 
 
 if __name__ == "__main__":
