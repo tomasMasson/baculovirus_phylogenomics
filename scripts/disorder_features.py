@@ -148,7 +148,7 @@ def compute_features(predictions):
             "ANCHOR_position": [],
             }
     for key in predictions:
-        protein_id = key
+        protein_id = "_".join(key.split("_")[3:5])
 
         # Create DisorderFeatures instance
         iupred = predictions[key]["iupred2a"]
