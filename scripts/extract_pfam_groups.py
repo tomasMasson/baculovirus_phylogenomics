@@ -42,13 +42,18 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("interpro_results",
                         help="InterPro search results")
-#    parser.add_argument("-o",
-#                        "--outfile",
-#                        nargs='?',
-#                        type=argparse.FileType('w'),
-#                        default=sys.stdout)
+    parser.add_argument("-o",
+                        "--outfile",
+                        nargs="?",
+                        const=None,
+                        dest=None)
     args = parser.parse_args()
-    extract_pfam_groups(args.interpro_results)
+    if args.outfile is None:
+        extract_pfam_groups(args.interpro_results)
+    else:
+        with open(args.outfile, "w") as fh:
+            sys.stdout = fh
+            extract_pfam_groups(args.interpro_results)
 
 
 if __name__ == "__main__":
